@@ -70,31 +70,31 @@ set(LIBARIES
   ${GPIOD_LIBRARY}
 )
 
-add_library(camera_detector_lib STATIC ${LIB_SOURCES})
+add_library(parking_arrows_lib STATIC ${LIB_SOURCES})
 
-add_executable(camera_detector ${EXE_SOURCES})
+add_executable(parking_arrows ${EXE_SOURCES})
 
 if(BUILD_TEST)
-  add_executable(camera_detector_test ${TEST_SOURCES})
+  add_executable(parking_arrows_test ${TEST_SOURCES})
 ENDIF()
 
-target_link_libraries(camera_detector_lib
+target_link_libraries(parking_arrows_lib
   ${LIBARIES}
 )
 
-target_link_libraries(camera_detector
-  camera_detector_lib
+target_link_libraries(parking_arrows
+  parking_arrows_lib
 )
 
 IF(BUILD_TEST)
-  target_link_libraries(camera_detector_test PUBLIC 
+  target_link_libraries(parking_arrows_test PUBLIC 
     ${LIBARIES}
-    camera_detector_lib
+    parking_arrows_lib
     gtest_main
   )
 
   include(GoogleTest)
-  gtest_discover_tests(camera_detector_test PROPERTIES TIMEOUT 800)
+  gtest_discover_tests(parking_arrows_test PROPERTIES TIMEOUT 800)
 ENDIF()
 
-INSTALL(TARGETS camera_detector)
+INSTALL(TARGETS parking_arrows)
