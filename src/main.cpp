@@ -2,6 +2,7 @@
 #include <Config.h>
 #include <Camera.h>
 #include <LicensePlateRecognizer.h>
+#include <gpiod.hpp>
 
 int main(int argc, char **argv)
 {
@@ -39,13 +40,36 @@ int main(int argc, char **argv)
     LicensePlateGeometry target_plate;
     Config config = Config();
     target_plate = config.get_target_geometry();
+    struct gpiod_chip *chip;
+    struct gpiod_line *left_led;
+    struct gpiod_line *right_led;
+    struct gpiod_line *forward_led;
+    struct gpiod_line *stop_led;
+    struct gpiod_line *button_input;
+
+    chip = gpiod_chip_open("/dev/gpiochip0");
+    left_led = gpiod_chip_get_line(chip, 17);
+    right_led = gpiod_chip_get_line(chip, 27);
+    forward_led = gpiod_chip_get_line(chip, 22);
+    stop_led = gpiod_chip_get_line(chip, 23);
+    button_input = gpiod_chip_get_line(chip, 24);
+    int result;
+    int button_state;
+    result = gpiod_line_request_output(left_led, "left_led", 0);
+    result = gpiod_line_request_output(right_led, "right_led", 0);
+    result = gpiod_line_request_output(forward_led, "forward_led", 0);
+    result = gpiod_line_request_output(stop_led, "stop_led", 0);
+    result = gpiod_line_request_input(button_input, "button_input");
 
     while (1)
     {
         if (enable_buttons)
         {
-            // check gpio states
-            // set_destination = true;
+            button_state = gpiod_line_get_value(button_input);
+            if (button_state)
+            {
+                set_destination = true;
+            }
         }
         if (cd.get_next_frame(&frame))
         {
@@ -62,6 +86,7 @@ int main(int argc, char **argv)
                     std::cout << "save detected position as target" << std::endl;
                     config.set_target_geometry(detected_plate);
                     target_plate = config.get_target_geometry();
+                    set_destination = false;
                     if (single_run)
                     {
                         return 0;
@@ -72,21 +97,45 @@ int main(int argc, char **argv)
                     if (target_plate.width > detected_plate.width)
                     {
                         std::cout << "Go forward";
+                        gpiod_line_set_value(forward_led, 1);
+                        gpiod_line_set_value(stop_led, 0);
                         if ((target_plate.x - 10) > detected_plate.x)
                         {
                             std::cout << " and turn left";
+                            gpiod_line_set_value(left_led, 1);
+                            gpiod_line_set_value(right_led, 0);
                         }
                         else if ((target_plate.x + 10) < detected_plate.x + 5)
                         {
-                            std::cout << "and turn right";
+                            std::cout << " and turn right";
+                            gpiod_line_set_value(left_led, 0);
+                            gpiod_line_set_value(right_led, 1);
+                        }
+                        else
+                        {
+                            gpiod_line_set_value(left_led, 0);
+                            gpiod_line_set_value(right_led, 0);
                         }
                         std::cout << std::endl;
                     }
                     else
                     {
                         std::cout << "STOP" << std::endl;
+                        gpiod_line_set_value(forward_led, 0);
+                        gpiod_line_set_value(stop_led, 1);
+                        gpiod_line_set_value(left_led, 0);
+                        gpiod_line_set_value(right_led, 0);
                     }
                 }
+            }
+            else
+            {
+                // plate not detected
+                std::cout << "Wait for plate detection" << std::endl;
+                gpiod_line_set_value(forward_led, 0);
+                gpiod_line_set_value(stop_led, 1);
+                gpiod_line_set_value(left_led, 1);
+                gpiod_line_set_value(right_led, 1);
             }
         }
     }

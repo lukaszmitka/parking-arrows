@@ -62,9 +62,12 @@ IF(BUILD_TEST)
   )
 ENDIF()
 
+find_library(GPIOD_LIBRARY NAMES libgpiod.so)
+
 set(LIBARIES
   ${OpenCV_LIBS}
   openalpr
+  ${GPIOD_LIBRARY}
 )
 
 add_library(camera_detector_lib STATIC ${LIB_SOURCES})
@@ -93,3 +96,5 @@ IF(BUILD_TEST)
   include(GoogleTest)
   gtest_discover_tests(camera_detector_test PROPERTIES TIMEOUT 800)
 ENDIF()
+
+INSTALL(TARGETS camera_detector)
