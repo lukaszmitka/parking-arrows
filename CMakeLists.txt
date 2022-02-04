@@ -98,3 +98,4 @@ IF(BUILD_TEST)
 ENDIF()
 
 INSTALL(TARGETS parking_arrows)
+INSTALL(PROGRAMS init_script/parking_arrows.sh DESTINATION /etc/init.d/ RENAME parking_arrows)
