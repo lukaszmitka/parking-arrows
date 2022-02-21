@@ -14,11 +14,6 @@ LicensePlateRecognizer::LicensePlateRecognizer()
     {
         alpr->getConfig()->setDebug(true);
     }
-
-    if (alpr->isLoaded() == false)
-    {
-        std::cerr << "Error loading OpenALPR" << std::endl;
-    }
 }
 
 LicensePlateRecognizer::~LicensePlateRecognizer()
@@ -30,19 +25,7 @@ LicensePlateGeometry LicensePlateRecognizer::getDetectedGeometry()
     return detectedGeometry;
 }
 
-bool LicensePlateRecognizer::readAndProcessFile(std::string filename)
-{
-    frame = cv::imread(filename);
-    return process_frame("");
-}
-
-bool LicensePlateRecognizer::process_frame(cv::Mat f)
-{
-    frame = f;
-    return process_frame("");
-}
-
-bool LicensePlateRecognizer::process_frame(std::string region)
+void LicensePlateRecognizer::process_frame(cv::Mat frame)
 {
     std::vector<alpr::AlprRegionOfInterest> regionsOfInterest;
     regionsOfInterest.push_back(alpr::AlprRegionOfInterest(0, 0, frame.cols, frame.rows));
@@ -54,7 +37,14 @@ bool LicensePlateRecognizer::process_frame(std::string region)
         detectedGeometry.y = (results.plates[0].plate_points[0].y + results.plates[0].plate_points[1].y + results.plates[0].plate_points[2].y + results.plates[0].plate_points[3].y) / 4;
         detectedGeometry.width = (results.plates[0].plate_points[1].x + results.plates[0].plate_points[2].x - results.plates[0].plate_points[0].x - results.plates[0].plate_points[3].x) / 2;
         detectedGeometry.height = (results.plates[0].plate_points[2].y + results.plates[0].plate_points[3].y - results.plates[0].plate_points[0].y - results.plates[0].plate_points[1].y) / 2;
-        return true;
+        plate_found = true;
+    } else 
+    {
+        plate_found = false;
     }
-    return false;
+}
+
+bool LicensePlateRecognizer::get_plate_detection_status()
+{
+    return plate_found;
 }

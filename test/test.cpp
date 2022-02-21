@@ -2,13 +2,7 @@
 #include <iostream>
 #include <fstream>
 
-#include <Camera.h>
 #include <Config.h>
-
-TEST(CameraTest, test1_init_object)
-{
-    Camera cd;
-}
 
 TEST(ConfigTest, test_1_init_default_config)
 {

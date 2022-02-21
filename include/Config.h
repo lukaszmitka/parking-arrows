@@ -3,8 +3,6 @@
 
 #include <LicensePlateRecognizer.h>
 #include <nlohmann/json.hpp>
-#include <iostream>
-#include <iomanip>
 
 class Config
 {

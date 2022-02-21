@@ -19,6 +19,11 @@ find_path(OpenCV_DIR
 
 # Opencv Package
 FIND_PACKAGE( OpenCV REQUIRED )
+find_package(Threads REQUIRED)
+
+pkg_check_modules(LIBOPENALPR REQUIRED openalpr)
+pkg_check_modules(LIBCAMERA REQUIRED libcamera)
+pkg_check_modules(LIBJSON REQUIRED nlohmann_json)
 
 IF (${OpenCV_VERSION} VERSION_LESS 2.4.7)
 	MESSAGE(FATAL_ERROR "OpenCV version is not compatible : ${OpenCV_VERSION}")
@@ -44,6 +49,7 @@ ENDIF()
 include_directories(
   ${CMAKE_SOURCE_DIR} 
   include
+  ${LIBCAMERA_INCLUDE_DIRS}
 )
 
 set(LIB_SOURCES
@@ -68,6 +74,8 @@ set(LIBARIES
   ${OpenCV_LIBS}
   openalpr
   ${GPIOD_LIBRARY}
+  ${LIBCAMERA_LINK_LIBRARIES}
+  Threads::Threads
 )
 
 add_library(parking_arrows_lib STATIC ${LIB_SOURCES})

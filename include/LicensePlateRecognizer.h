@@ -5,7 +5,6 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include "openalpr/alpr.h"
 #include "openalpr/config.h"
-#include <iostream>
 
 struct LicensePlateGeometry
 {
@@ -20,8 +19,8 @@ class LicensePlateRecognizer
 public:
     LicensePlateRecognizer();
     ~LicensePlateRecognizer();
-    bool readAndProcessFile(std::string filename);
-    bool process_frame(cv::Mat f);
+    bool get_plate_detection_status();
+    void process_frame(cv::Mat frame);
     LicensePlateGeometry getDetectedGeometry();
 
 private:
@@ -29,9 +28,8 @@ private:
     std::string configFile;
     int topn;
     bool debug_mode;
+    bool plate_found;
     alpr::Alpr *alpr;
-    cv::Mat frame;
-    bool process_frame(std::string region);
     LicensePlateGeometry detectedGeometry;
 };
 

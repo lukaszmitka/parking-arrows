@@ -3,6 +3,8 @@
 #include <Camera.h>
 #include <LicensePlateRecognizer.h>
 #include <gpiod.hpp>
+#include <thread>
+#include <chrono>
 
 int main(int argc, char **argv)
 {
@@ -32,8 +34,8 @@ int main(int argc, char **argv)
         single_run = true;
     }
 
-    Camera cd = Camera();
-    cv::Mat frame;
+    ParkingArrowCamera pac = ParkingArrowCamera();
+    cv::Mat frame(Y_PLANE_HEIGHT, Y_PLANE_WIDTH, CV_8UC3);
     LicensePlateRecognizer *lpr;
     lpr = new LicensePlateRecognizer();
     LicensePlateGeometry detected_plate;
@@ -53,16 +55,15 @@ int main(int argc, char **argv)
     forward_led = gpiod_chip_get_line(chip, 22);
     stop_led = gpiod_chip_get_line(chip, 23);
     button_input = gpiod_chip_get_line(chip, 24);
-    int result;
     int button_state;
-    result = gpiod_line_request_output(left_led, "left_led", 0);
-    result = gpiod_line_request_output(right_led, "right_led", 0);
-    result = gpiod_line_request_output(forward_led, "forward_led", 0);
-    result = gpiod_line_request_output(stop_led, "stop_led", 0);
-    result = gpiod_line_request_input(button_input, "button_input");
+    gpiod_line_request_output(left_led, "left_led", 0);
+    gpiod_line_request_output(right_led, "right_led", 0);
+    gpiod_line_request_output(forward_led, "forward_led", 0);
+    gpiod_line_request_output(stop_led, "stop_led", 0);
+    gpiod_line_request_input(button_input, "button_input");
 
-    while (1)
-    {
+    pac.start();
+    while(1){
         if (enable_buttons)
         {
             button_state = gpiod_line_get_value(button_input);
@@ -71,19 +72,15 @@ int main(int argc, char **argv)
                 set_destination = true;
             }
         }
-        if (cd.get_next_frame(&frame))
+        if (pac.get_next_frame(&frame))
         {
-            if (show_preview)
-            {
-                cv::imshow("Camera preview", frame);
-            }
-            if (lpr->process_frame(frame))
+            std::thread frame_process_thread(std::bind(&LicensePlateRecognizer::process_frame, lpr, frame));
+            frame_process_thread.join();
+            if (lpr->get_plate_detection_status())
             {
                 detected_plate = lpr->getDetectedGeometry();
-                std::cout << "Frame found at " << detected_plate.x << ", " << detected_plate.y << " with size " << detected_plate.width << ", " << detected_plate.height << std::endl;
                 if (set_destination)
                 {
-                    std::cout << "save detected position as target" << std::endl;
                     config.set_target_geometry(detected_plate);
                     target_plate = config.get_target_geometry();
                     set_destination = false;
@@ -137,6 +134,8 @@ int main(int argc, char **argv)
                 gpiod_line_set_value(left_led, 1);
                 gpiod_line_set_value(right_led, 1);
             }
+        } else {
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
     }
     return 0;
