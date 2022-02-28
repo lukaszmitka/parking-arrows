@@ -6,6 +6,17 @@
 #include <thread>
 #include <chrono>
 
+#define CENTER_RED 24
+#define CENTER_GREEN 25
+#define CENTER_BLUE 8
+#define LEFT_RED 7
+#define LEFT_GREEN 1
+#define LEFT_BLUE 12
+#define RIGHT_RED 16
+#define RIGHT_GREEN 20
+#define RIGHT_BLUE 21
+#define CONFIG_BUTTON 27
+
 int main(int argc, char **argv)
 {
     bool set_destination = false;
@@ -47,19 +58,23 @@ int main(int argc, char **argv)
     struct gpiod_line *right_led;
     struct gpiod_line *forward_led;
     struct gpiod_line *stop_led;
+    struct gpiod_line *wait_led;
     struct gpiod_line *button_input;
+    bool blink_led = false;
 
     chip = gpiod_chip_open("/dev/gpiochip0");
-    left_led = gpiod_chip_get_line(chip, 17);
-    right_led = gpiod_chip_get_line(chip, 27);
-    forward_led = gpiod_chip_get_line(chip, 22);
-    stop_led = gpiod_chip_get_line(chip, 23);
+    left_led = gpiod_chip_get_line(chip, LEFT_GREEN);
+    right_led = gpiod_chip_get_line(chip, RIGHT_GREEN);
+    forward_led = gpiod_chip_get_line(chip, CENTER_GREEN);
+    stop_led = gpiod_chip_get_line(chip, CENTER_RED);
+    wait_led = gpiod_chip_get_line(chip, CENTER_BLUE);
     button_input = gpiod_chip_get_line(chip, 24);
     int button_state;
     gpiod_line_request_output(left_led, "left_led", 0);
     gpiod_line_request_output(right_led, "right_led", 0);
     gpiod_line_request_output(forward_led, "forward_led", 0);
     gpiod_line_request_output(stop_led, "stop_led", 0);
+    gpiod_line_request_output(wait_led, "wait_led", 0);
     gpiod_line_request_input(button_input, "button_input");
 
     pac.start();
@@ -96,6 +111,7 @@ int main(int argc, char **argv)
                         std::cout << "Go forward";
                         gpiod_line_set_value(forward_led, 1);
                         gpiod_line_set_value(stop_led, 0);
+                        gpiod_line_set_value(wait_led, 0);
                         if ((target_plate.x - 10) > detected_plate.x)
                         {
                             std::cout << " and turn left";
@@ -122,6 +138,7 @@ int main(int argc, char **argv)
                         gpiod_line_set_value(stop_led, 1);
                         gpiod_line_set_value(left_led, 0);
                         gpiod_line_set_value(right_led, 0);
+                        gpiod_line_set_value(wait_led, 0);
                     }
                 }
             }
@@ -129,10 +146,12 @@ int main(int argc, char **argv)
             {
                 // plate not detected
                 std::cout << "Wait for plate detection" << std::endl;
+                blink_led = !blink_led;
                 gpiod_line_set_value(forward_led, 0);
-                gpiod_line_set_value(stop_led, 1);
-                gpiod_line_set_value(left_led, 1);
-                gpiod_line_set_value(right_led, 1);
+                gpiod_line_set_value(stop_led, 0);
+                gpiod_line_set_value(left_led, blink_led);
+                gpiod_line_set_value(right_led, blink_led);
+                gpiod_line_set_value(wait_led, 1);
             }
         } else {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
