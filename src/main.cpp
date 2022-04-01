@@ -68,7 +68,7 @@ int main(int argc, char **argv)
     forward_led = gpiod_chip_get_line(chip, CENTER_GREEN);
     stop_led = gpiod_chip_get_line(chip, CENTER_RED);
     wait_led = gpiod_chip_get_line(chip, CENTER_BLUE);
-    button_input = gpiod_chip_get_line(chip, 24);
+    button_input = gpiod_chip_get_line(chip, CONFIG_BUTTON);
     int button_state;
     gpiod_line_request_output(left_led, "left_led", 0);
     gpiod_line_request_output(right_led, "right_led", 0);
