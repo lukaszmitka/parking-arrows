@@ -85,6 +85,11 @@ int main(int argc, char **argv)
             if (button_state)
             {
                 set_destination = true;
+                gpiod_line_set_value(forward_led, 1);
+                gpiod_line_set_value(stop_led, 1);
+                gpiod_line_set_value(wait_led, 1);
+                gpiod_line_set_value(left_led, 1);
+                gpiod_line_set_value(right_led, 1);
             }
         }
         if (pac.get_next_frame(&frame))
