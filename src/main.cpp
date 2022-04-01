@@ -16,6 +16,8 @@
 #define RIGHT_GREEN 20
 #define RIGHT_BLUE 21
 #define CONFIG_BUTTON 27
+#define BUTTON_PRESSED 0
+#define BUTTON_RELEASED 1
 
 int main(int argc, char **argv)
 {
@@ -45,14 +47,6 @@ int main(int argc, char **argv)
         single_run = true;
     }
 
-    ParkingArrowCamera pac = ParkingArrowCamera();
-    cv::Mat frame(Y_PLANE_HEIGHT, Y_PLANE_WIDTH, CV_8UC3);
-    LicensePlateRecognizer *lpr;
-    lpr = new LicensePlateRecognizer();
-    LicensePlateGeometry detected_plate;
-    LicensePlateGeometry target_plate;
-    Config config = Config();
-    target_plate = config.get_target_geometry();
     struct gpiod_chip *chip;
     struct gpiod_line *left_led;
     struct gpiod_line *right_led;
@@ -77,12 +71,28 @@ int main(int argc, char **argv)
     gpiod_line_request_output(wait_led, "wait_led", 0);
     gpiod_line_request_input(button_input, "button_input");
 
+    gpiod_line_set_value(forward_led, 0);
+    gpiod_line_set_value(stop_led, 1);
+    gpiod_line_set_value(wait_led, 1);
+    gpiod_line_set_value(left_led, 1);
+    gpiod_line_set_value(right_led, 1);
+
+    ParkingArrowCamera pac = ParkingArrowCamera();
+    cv::Mat frame(Y_PLANE_HEIGHT, Y_PLANE_WIDTH, CV_8UC3);
+    LicensePlateRecognizer *lpr;
+    lpr = new LicensePlateRecognizer();
+    LicensePlateGeometry detected_plate;
+    LicensePlateGeometry target_plate;
+    Config config = Config();
+    target_plate = config.get_target_geometry();
+
     pac.start();
-    while(1){
+    while (1)
+    {
         if (enable_buttons)
         {
             button_state = gpiod_line_get_value(button_input);
-            if (button_state)
+            if (button_state == BUTTON_PRESSED || set_destination == true)
             {
                 set_destination = true;
                 gpiod_line_set_value(forward_led, 1);
@@ -104,6 +114,11 @@ int main(int argc, char **argv)
                     config.set_target_geometry(detected_plate);
                     target_plate = config.get_target_geometry();
                     set_destination = false;
+                    gpiod_line_set_value(forward_led, 0);
+                    gpiod_line_set_value(stop_led, 0);
+                    gpiod_line_set_value(wait_led, 0);
+                    gpiod_line_set_value(left_led, 1);
+                    gpiod_line_set_value(right_led, 1);
                     if (single_run)
                     {
                         return 0;
@@ -158,7 +173,9 @@ int main(int argc, char **argv)
                 gpiod_line_set_value(right_led, blink_led);
                 gpiod_line_set_value(wait_led, 1);
             }
-        } else {
+        }
+        else
+        {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
     }
