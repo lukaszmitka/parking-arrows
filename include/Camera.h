@@ -7,6 +7,8 @@
 #include <libcamera/libcamera.h>
 #include <sys/mman.h>
 
+#include <iostream>
+
 #define U_PLANE_HEIGHT 120
 #define U_PLANE_WIDTH 160
 #define Y_PLANE_HEIGHT 2 * U_PLANE_HEIGHT
@@ -20,7 +22,7 @@ public:
     ~ParkingArrowCamera();
     bool get_next_frame(cv::Mat *f);
 
-    void start();
+    bool start();
 
 private:
     std::vector<std::unique_ptr<libcamera::Request>> requests;
@@ -31,6 +33,7 @@ private:
     void requestComplete(libcamera::Request *request);
     cv::Mat *frame;
     bool new_frame_received;
+    bool camera_ready;
 };
 
 #endif //PARKING_ARROW_CAMERA_H

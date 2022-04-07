@@ -97,7 +97,15 @@ int main(int argc, char **argv)
     target_plate = config.get_target_geometry();
 
     std::cout << "parking arrows: main: start pac" << std::endl;
-    pac.start();
+    if (pac.start())
+    {
+        std::cout << "parking arrows: main: Camera started correctly" << std::endl;
+    }
+    else
+    {
+        std::cerr << "parking arrows: main: Can not start camera. Shutdown !!!" << std::endl;
+        return 1;
+    }
     std::cout << "parking arrows: main: while loop" << std::endl;
     while (1)
     {
