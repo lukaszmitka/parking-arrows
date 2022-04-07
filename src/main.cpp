@@ -21,10 +21,12 @@
 
 int main(int argc, char **argv)
 {
+    std::cout << "parking arrows: main" << std::endl;
     bool set_destination = false;
     bool enable_buttons = true;
     bool single_run = false;
     bool show_preview = false;
+    std::cout << "parking arrows: main: processing arguments" << std::endl;
     try
     {
         TCLAP::CmdLine cmd("Command description message", ' ', "0.0.1");
@@ -47,6 +49,7 @@ int main(int argc, char **argv)
         single_run = true;
     }
 
+    std::cout << "parking arrows: main: GPIO initialization" << std::endl;
     struct gpiod_chip *chip;
     struct gpiod_line *left_led;
     struct gpiod_line *right_led;
@@ -64,6 +67,7 @@ int main(int argc, char **argv)
     wait_led = gpiod_chip_get_line(chip, CENTER_BLUE);
     button_input = gpiod_chip_get_line(chip, CONFIG_BUTTON);
     int button_state;
+    std::cout << "parking arrows: main: GPIO set in/out" << std::endl;
     gpiod_line_request_output(left_led, "left_led", 0);
     gpiod_line_request_output(right_led, "right_led", 0);
     gpiod_line_request_output(forward_led, "forward_led", 0);
@@ -71,26 +75,35 @@ int main(int argc, char **argv)
     gpiod_line_request_output(wait_led, "wait_led", 0);
     gpiod_line_request_input(button_input, "button_input");
 
+    std::cout << "parking arrows: main: GPIO set values" << std::endl;
     gpiod_line_set_value(forward_led, 0);
     gpiod_line_set_value(stop_led, 1);
     gpiod_line_set_value(wait_led, 1);
     gpiod_line_set_value(left_led, 1);
     gpiod_line_set_value(right_led, 1);
 
+    std::cout << "parking arrows: main: ParkingArrowCamera object" << std::endl;
     ParkingArrowCamera pac = ParkingArrowCamera();
+    std::cout << "parking arrows: main: frame object" << std::endl;
     cv::Mat frame(Y_PLANE_HEIGHT, Y_PLANE_WIDTH, CV_8UC3);
+    std::cout << "parking arrows: main: LicensePlateRecognizer object" << std::endl;
     LicensePlateRecognizer *lpr;
     lpr = new LicensePlateRecognizer();
     LicensePlateGeometry detected_plate;
     LicensePlateGeometry target_plate;
+    std::cout << "parking arrows: main: Init config" << std::endl;
     Config config = Config();
+    std::cout << "parking arrows: main: read target" << std::endl;
     target_plate = config.get_target_geometry();
 
+    std::cout << "parking arrows: main: start pac" << std::endl;
     pac.start();
+    std::cout << "parking arrows: main: while loop" << std::endl;
     while (1)
     {
         if (enable_buttons)
         {
+            std::cout << "parking arrows: main: loop: check buttons state" << std::endl;
             button_state = gpiod_line_get_value(button_input);
             if (button_state == BUTTON_PRESSED || set_destination == true)
             {
@@ -102,10 +115,13 @@ int main(int argc, char **argv)
                 gpiod_line_set_value(right_led, 1);
             }
         }
+        std::cout << "parking arrows: main: loop: get next frame" << std::endl;
         if (pac.get_next_frame(&frame))
         {
+            std::cout << "parking arrows: main: loop: process frame" << std::endl;
             std::thread frame_process_thread(std::bind(&LicensePlateRecognizer::process_frame, lpr, frame));
             frame_process_thread.join();
+            std::cout << "parking arrows: main: loop: get detection state" << std::endl;
             if (lpr->get_plate_detection_status())
             {
                 detected_plate = lpr->getDetectedGeometry();
