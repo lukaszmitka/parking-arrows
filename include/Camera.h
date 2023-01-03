@@ -23,6 +23,7 @@ public:
     bool get_next_frame(cv::Mat *f);
 
     bool start();
+    bool is_camera_ready();
 
 private:
     std::vector<std::unique_ptr<libcamera::Request>> requests;

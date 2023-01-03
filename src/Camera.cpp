@@ -61,6 +61,11 @@ ParkingArrowCamera::ParkingArrowCamera()
     camera_ready = true;
 }
 
+bool ParkingArrowCamera::is_camera_ready()
+{
+    return camera_ready;
+}
+
 bool ParkingArrowCamera::get_next_frame(cv::Mat *f)
 {
     if (new_frame_received)
