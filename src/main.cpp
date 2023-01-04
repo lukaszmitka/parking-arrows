@@ -181,10 +181,21 @@ int main(int argc, char **argv)
     {
         if (pac.get_next_frame(&frame))
         {
-            gpiod_line_set_value(forward_led, 1);
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
-            gpiod_line_set_value(forward_led, 0);
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            button_state = gpiod_line_get_value(button_input);
+            if (button_state == BUTTON_PRESSED)
+            {
+                gpiod_line_set_value(left_led, 1);
+                gpiod_line_set_value(right_led, 1);
+                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                gpiod_line_set_value(left_led, 0);
+                gpiod_line_set_value(right_led, 0);
+                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                } else {
+                gpiod_line_set_value(forward_led, 1);
+                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                gpiod_line_set_value(forward_led, 0);
+                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            }
         } else {
             gpiod_line_set_value(wait_led, 1);
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
