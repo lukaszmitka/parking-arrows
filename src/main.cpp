@@ -163,9 +163,35 @@ int main(int argc, char **argv)
     else
     {
         std::cerr << "parking arrows: main: Can not start camera. Shutdown !!!" << std::endl;
+        gpiod_line_set_value(forward_led, 0);
+        gpiod_line_set_value(wait_led, 0);
+        gpiod_line_set_value(left_led, 0);
+        gpiod_line_set_value(right_led, 0);
+        for(int i =0; i<10; i++)
+        {
+            gpiod_line_set_value(stop_led, 1);
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            gpiod_line_set_value(stop_led, 0);
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
         return 1;
     }
     std::cout << "parking arrows: main: while loop" << std::endl;
+    while(1)
+    {
+        if (pac.get_next_frame(&frame))
+        {
+            gpiod_line_set_value(forward_led, 1);
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            gpiod_line_set_value(forward_led, 0);
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        } else {
+            gpiod_line_set_value(wait_led, 1);
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            gpiod_line_set_value(wait_led, 0);
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));            
+        }
+    }
     return 0;
 
     while (1)
