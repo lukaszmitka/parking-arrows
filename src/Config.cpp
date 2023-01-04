@@ -30,6 +30,9 @@ bool Config::load_config()
     {
         init_default_config();
         config_fd = fopen(config_file_path.c_str(), "r");
+        default_config_loaded = true;
+    } else {
+        default_config_loaded = false;
     }
     int c = 0;
     std::string conf_str;
@@ -45,6 +48,11 @@ bool Config::load_config()
     target_geometry.width = config_json["target_geometry"]["width"];
     target_geometry.height = config_json["target_geometry"]["height"];
     return true;
+}
+
+bool Config::using_default_config()
+{
+    return default_config_loaded;
 }
 
 bool Config::save_config()
