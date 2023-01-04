@@ -113,8 +113,45 @@ int main(int argc, char **argv)
     lpr = new LicensePlateRecognizer();
     LicensePlateGeometry detected_plate;
     LicensePlateGeometry target_plate;
+    gpiod_line_set_value(forward_led, 1);
+    gpiod_line_set_value(stop_led, 0);
+    gpiod_line_set_value(wait_led, 0);
+    gpiod_line_set_value(left_led, 0);
+    gpiod_line_set_value(right_led, 0);
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    gpiod_line_set_value(forward_led, 0);
+    gpiod_line_set_value(stop_led, 1);
+    gpiod_line_set_value(wait_led, 0);
+    gpiod_line_set_value(left_led, 0);
+    gpiod_line_set_value(right_led, 0);
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    gpiod_line_set_value(forward_led, 0);
+    gpiod_line_set_value(stop_led, 0);
+    gpiod_line_set_value(wait_led, 1);
+    gpiod_line_set_value(left_led, 0);
+    gpiod_line_set_value(right_led, 0);
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
     std::cout << "parking arrows: main: Init config" << std::endl;
     Config config = Config();
+    if(config.using_default_config())
+    {
+        for(int i =0; i<10; i++){
+            gpiod_line_set_value(forward_led, 1);
+            gpiod_line_set_value(stop_led, 1);
+            gpiod_line_set_value(wait_led, 1);
+            gpiod_line_set_value(left_led, 1);
+            gpiod_line_set_value(right_led, 1);
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            gpiod_line_set_value(forward_led, 0);
+            gpiod_line_set_value(stop_led, 0);
+            gpiod_line_set_value(wait_led, 0);
+            gpiod_line_set_value(left_led, 0);
+            gpiod_line_set_value(right_led, 0);
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            set_destination = true;
+        }
+    }
     std::cout << "parking arrows: main: read target" << std::endl;
     target_plate = config.get_target_geometry();
 
@@ -129,27 +166,6 @@ int main(int argc, char **argv)
         return 1;
     }
     std::cout << "parking arrows: main: while loop" << std::endl;
-    while (1)
-    {
-        gpiod_line_set_value(forward_led, 1);
-        gpiod_line_set_value(stop_led, 0);
-        gpiod_line_set_value(wait_led, 0);
-        gpiod_line_set_value(left_led, 0);
-        gpiod_line_set_value(right_led, 0);
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-        gpiod_line_set_value(forward_led, 0);
-        gpiod_line_set_value(stop_led, 1);
-        gpiod_line_set_value(wait_led, 0);
-        gpiod_line_set_value(left_led, 0);
-        gpiod_line_set_value(right_led, 0);
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-        gpiod_line_set_value(forward_led, 0);
-        gpiod_line_set_value(stop_led, 0);
-        gpiod_line_set_value(wait_led, 1);
-        gpiod_line_set_value(left_led, 0);
-        gpiod_line_set_value(right_led, 0);
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-    }
     return 0;
 
     while (1)
