@@ -225,6 +225,11 @@ int main(int argc, char **argv)
         if (pac.get_next_frame(&frame))
         {
             std::cout << "parking arrows: main: loop: process frame" << std::endl;
+            gpiod_line_set_value(forward_led, 0);
+            gpiod_line_set_value(stop_led, 0);
+            gpiod_line_set_value(wait_led, 0);
+            gpiod_line_set_value(left_led, 0);
+            gpiod_line_set_value(right_led, 0);
             std::thread frame_process_thread(std::bind(&LicensePlateRecognizer::process_frame, lpr, frame));
             frame_process_thread.join();
             std::cout << "parking arrows: main: loop: get detection state" << std::endl;
