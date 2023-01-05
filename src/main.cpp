@@ -16,8 +16,8 @@
 #define RIGHT_GREEN 20
 #define RIGHT_BLUE 21
 #define CONFIG_BUTTON 27
-#define BUTTON_PRESSED 0
-#define BUTTON_RELEASED 1
+#define BUTTON_PRESSED 1
+#define BUTTON_RELEASED 0
 
 int main(int argc, char **argv)
 {
@@ -177,39 +177,39 @@ int main(int argc, char **argv)
         return 1;
     }
     std::cout << "parking arrows: main: while loop" << std::endl;
-    while(1)
-    {
-        if (pac.get_next_frame(&frame))
-        {
-            button_state = gpiod_line_get_value(button_input);
-            if (button_state == BUTTON_PRESSED)
-            {
-                gpiod_line_set_value(left_led, 1);
-                gpiod_line_set_value(right_led, 1);
-                std::this_thread::sleep_for(std::chrono::milliseconds(100));
-                gpiod_line_set_value(left_led, 0);
-                gpiod_line_set_value(right_led, 0);
-                std::this_thread::sleep_for(std::chrono::milliseconds(100));
-                } else {
-                gpiod_line_set_value(forward_led, 1);
-                std::this_thread::sleep_for(std::chrono::milliseconds(100));
-                gpiod_line_set_value(forward_led, 0);
-                std::this_thread::sleep_for(std::chrono::milliseconds(100));
-            }
-        } else {
-            gpiod_line_set_value(wait_led, 1);
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
-            gpiod_line_set_value(wait_led, 0);
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));            
-        }
-    }
-    return 0;
+    // while(1)
+    // {
+    //     if (pac.get_next_frame(&frame))
+    //     {
+    //         button_state = gpiod_line_get_value(button_input);
+    //         if (button_state == BUTTON_PRESSED)
+    //         {
+    //             gpiod_line_set_value(left_led, 1);
+    //             gpiod_line_set_value(right_led, 1);
+    //             std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    //             gpiod_line_set_value(left_led, 0);
+    //             gpiod_line_set_value(right_led, 0);
+    //             std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    //         } else {
+    //             gpiod_line_set_value(forward_led, 1);
+    //             std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    //             gpiod_line_set_value(forward_led, 0);
+    //             std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    //         }
+    //     } else {
+    //         gpiod_line_set_value(wait_led, 1);
+    //         std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    //         gpiod_line_set_value(wait_led, 0);
+    //         std::this_thread::sleep_for(std::chrono::milliseconds(100));            
+    //     }
+    // }
+    // return 0;
 
     while (1)
     {
-        if (enable_buttons)
-        {
-            std::cout << "parking arrows: main: loop: check buttons state" << std::endl;
+        // if (enable_buttons)
+        // {
+            // std::cout << "parking arrows: main: loop: check buttons state" << std::endl;
             button_state = gpiod_line_get_value(button_input);
             if (button_state == BUTTON_PRESSED || set_destination == true)
             {
@@ -217,11 +217,11 @@ int main(int argc, char **argv)
                 gpiod_line_set_value(forward_led, 1);
                 gpiod_line_set_value(stop_led, 1);
                 gpiod_line_set_value(wait_led, 1);
-                gpiod_line_set_value(left_led, 1);
-                gpiod_line_set_value(right_led, 1);
+                gpiod_line_set_value(left_led, blink_led);
+                gpiod_line_set_value(right_led, blink_led);
             }
-        }
-        std::cout << "parking arrows: main: loop: get next frame" << std::endl;
+        // }
+        // std::cout << "parking arrows: main: loop: get next frame" << std::endl;
         if (pac.get_next_frame(&frame))
         {
             std::cout << "parking arrows: main: loop: process frame" << std::endl;
@@ -289,11 +289,20 @@ int main(int argc, char **argv)
                 // plate not detected
                 std::cout << "Wait for plate detection" << std::endl;
                 blink_led = !blink_led;
-                gpiod_line_set_value(forward_led, 0);
-                gpiod_line_set_value(stop_led, 0);
-                gpiod_line_set_value(left_led, blink_led);
-                gpiod_line_set_value(right_led, blink_led);
-                gpiod_line_set_value(wait_led, 1);
+                if (set_destination == true)
+                {
+                    gpiod_line_set_value(forward_led, 1);
+                    gpiod_line_set_value(stop_led, 1);
+                    gpiod_line_set_value(wait_led, 1);
+                    gpiod_line_set_value(left_led, blink_led);
+                    gpiod_line_set_value(right_led, blink_led);
+                } else {
+                    gpiod_line_set_value(forward_led, 0);
+                    gpiod_line_set_value(stop_led, 0);
+                    gpiod_line_set_value(left_led, blink_led);
+                    gpiod_line_set_value(right_led, blink_led);
+                    gpiod_line_set_value(wait_led, 1);
+                }
             }
         }
         else
