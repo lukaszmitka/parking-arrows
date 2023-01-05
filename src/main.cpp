@@ -225,90 +225,94 @@ int main(int argc, char **argv)
         if (pac.get_next_frame(&frame))
         {
             std::cout << "parking arrows: main: loop: process frame" << std::endl;
-            gpiod_line_set_value(forward_led, 0);
-            gpiod_line_set_value(stop_led, 0);
-            gpiod_line_set_value(wait_led, 0);
-            gpiod_line_set_value(left_led, 0);
-            gpiod_line_set_value(right_led, 0);
             std::thread frame_process_thread(std::bind(&LicensePlateRecognizer::process_frame, lpr, frame));
             frame_process_thread.join();
             std::cout << "parking arrows: main: loop: get detection state" << std::endl;
             if (lpr->get_plate_detection_status())
             {
-                detected_plate = lpr->getDetectedGeometry();
-                if (set_destination)
-                {
-                    config.set_target_geometry(detected_plate);
-                    target_plate = config.get_target_geometry();
-                    set_destination = false;
-                    gpiod_line_set_value(forward_led, 0);
-                    gpiod_line_set_value(stop_led, 0);
-                    gpiod_line_set_value(wait_led, 0);
-                    gpiod_line_set_value(left_led, 1);
-                    gpiod_line_set_value(right_led, 1);
-                    if (single_run)
-                    {
-                        return 0;
-                    }
-                }
-                else
-                {
-                    if (target_plate.width > detected_plate.width)
-                    {
-                        std::cout << "Go forward";
-                        gpiod_line_set_value(forward_led, 1);
-                        gpiod_line_set_value(stop_led, 0);
-                        gpiod_line_set_value(wait_led, 0);
-                        if ((target_plate.x - 10) > detected_plate.x)
-                        {
-                            std::cout << " and turn left";
-                            gpiod_line_set_value(left_led, 1);
-                            gpiod_line_set_value(right_led, 0);
-                        }
-                        else if ((target_plate.x + 10) < detected_plate.x + 5)
-                        {
-                            std::cout << " and turn right";
-                            gpiod_line_set_value(left_led, 0);
-                            gpiod_line_set_value(right_led, 1);
-                        }
-                        else
-                        {
-                            gpiod_line_set_value(left_led, 0);
-                            gpiod_line_set_value(right_led, 0);
-                        }
-                        std::cout << std::endl;
-                    }
-                    else
-                    {
-                        std::cout << "STOP" << std::endl;
-                        gpiod_line_set_value(forward_led, 0);
-                        gpiod_line_set_value(stop_led, 1);
-                        gpiod_line_set_value(left_led, 0);
-                        gpiod_line_set_value(right_led, 0);
-                        gpiod_line_set_value(wait_led, 0);
-                    }
-                }
+                gpiod_line_set_value(forward_led, 1);
+                gpiod_line_set_value(stop_led, 1);
+                gpiod_line_set_value(wait_led, 0);
+
+                // detected_plate = lpr->getDetectedGeometry();
+                // if (set_destination)
+                // {
+                //     config.set_target_geometry(detected_plate);
+                //     target_plate = config.get_target_geometry();
+                //     set_destination = false;
+                //     gpiod_line_set_value(forward_led, 0);
+                //     gpiod_line_set_value(stop_led, 0);
+                //     gpiod_line_set_value(wait_led, 0);
+                //     gpiod_line_set_value(left_led, 1);
+                //     gpiod_line_set_value(right_led, 1);
+                //     if (single_run)
+                //     {
+                //         return 0;
+                //     }
+                // }
+                // else
+                // {
+                //     if (target_plate.width > detected_plate.width)
+                //     {
+                //         std::cout << "Go forward";
+                //         gpiod_line_set_value(forward_led, 1);
+                //         gpiod_line_set_value(stop_led, 0);
+                //         gpiod_line_set_value(wait_led, 0);
+                //         if ((target_plate.x - 10) > detected_plate.x)
+                //         {
+                //             std::cout << " and turn left";
+                //             gpiod_line_set_value(left_led, 1);
+                //             gpiod_line_set_value(right_led, 0);
+                //         }
+                //         else if ((target_plate.x + 10) < detected_plate.x + 5)
+                //         {
+                //             std::cout << " and turn right";
+                //             gpiod_line_set_value(left_led, 0);
+                //             gpiod_line_set_value(right_led, 1);
+                //         }
+                //         else
+                //         {
+                //             gpiod_line_set_value(left_led, 0);
+                //             gpiod_line_set_value(right_led, 0);
+                //         }
+                //         std::cout << std::endl;
+                //     }
+                //     else
+                //     {
+                //         std::cout << "STOP" << std::endl;
+                //         gpiod_line_set_value(forward_led, 0);
+                //         gpiod_line_set_value(stop_led, 1);
+                //         gpiod_line_set_value(left_led, 0);
+                //         gpiod_line_set_value(right_led, 0);
+                //         gpiod_line_set_value(wait_led, 0);
+                //     }
+                // }
             }
             else
             {
-                // plate not detected
-                std::cout << "Wait for plate detection" << std::endl;
-                blink_led = !blink_led;
-                if (set_destination == true)
-                {
-                    gpiod_line_set_value(forward_led, 1);
-                    gpiod_line_set_value(stop_led, 1);
-                    gpiod_line_set_value(wait_led, 1);
-                    gpiod_line_set_value(left_led, blink_led);
-                    gpiod_line_set_value(right_led, blink_led);
-                } else {
-                    gpiod_line_set_value(forward_led, 0);
-                    gpiod_line_set_value(stop_led, 0);
-                    gpiod_line_set_value(left_led, blink_led);
-                    gpiod_line_set_value(right_led, blink_led);
-                    gpiod_line_set_value(wait_led, 1);
-                }
+                gpiod_line_set_value(forward_led, 0);
+                gpiod_line_set_value(stop_led, 0);
+                gpiod_line_set_value(wait_led, 1);
             }
+            // {
+                // plate not detected
+                // std::cout << "Wait for plate detection" << std::endl;
+                blink_led = !blink_led;
+                // if (set_destination == true)
+                // {
+                //     gpiod_line_set_value(forward_led, 1);
+                //     gpiod_line_set_value(stop_led, 1);
+                //     gpiod_line_set_value(wait_led, 1);
+                //     gpiod_line_set_value(left_led, blink_led);
+                //     gpiod_line_set_value(right_led, blink_led);
+                // } else {
+                //     gpiod_line_set_value(forward_led, 0);
+                //     gpiod_line_set_value(stop_led, 0);
+                    gpiod_line_set_value(left_led, blink_led);
+                    gpiod_line_set_value(right_led, blink_led);
+                    // gpiod_line_set_value(wait_led, 1);
+                // }
+            // }
         }
         else
         {
